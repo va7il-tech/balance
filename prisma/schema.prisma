@@ -1,0 +1,135 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String          @id @default(cuid())
+  email          String          @unique
+  name           String?
+  createdAt      DateTime        @default(now())
+  dailyEntries   DailyEntry[]
+  weeklyReviews  WeeklyReview[]
+  monthlyReviews MonthlyReview[]
+  tasks          Task[]
+  reflections    ReflectionRow[]
+}
+
+model DailyEntry {
+  id                     String   @id @default(cuid())
+  userId                 String
+  date                   DateTime @db.Date
+  wakeTime               DateTime?
+  noMessenger45          Boolean  @default(false)
+  prioritiesWritten      Boolean  @default(false)
+  priority1              String?
+  priority2              String?
+  priority3              String?
+  shutdownDone           Boolean  @default(false)
+  shutdownNotes          String?
+  sportDone              Boolean  @default(false)
+  sportDurationMinutes   Int?
+  readingDone            Boolean  @default(false)
+  englishDone            Boolean  @default(false)
+  languagesPracticeDone  Boolean  @default(false)
+  languagesNote          String?
+  saidNoTo               String
+  dayScore               Int      @default(0)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date])
+  @@index([userId, date])
+}
+
+model WeeklyReview {
+  id              String   @id @default(cuid())
+  userId          String
+  weekStartDate   DateTime @db.Date
+  mainResult      String
+  mainResultDone  Boolean  @default(false)
+  whatWorked      String[]
+  whatBrokeRhythm String[]
+  notDoingList    String[]
+  skillOfTheWeek  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, weekStartDate])
+  @@index([userId, weekStartDate])
+}
+
+model MonthlyReview {
+  id                    String   @id @default(cuid())
+  userId                String
+  month                 DateTime @db.Date
+  averageDailyScore     Float    @default(0)
+  topImprovements       String[]
+  repeatingRootProblem  String?
+  decisionNextMonth     String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, month])
+  @@index([userId, month])
+}
+
+model Task {
+  id         String   @id @default(cuid())
+  userId     String
+  title      String
+  date       DateTime @db.Date
+  time       DateTime?
+  priority   TaskPriority
+  category   TaskCategory
+  status     TaskStatus @default(OPEN)
+  notes      String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, date])
+}
+
+model ReflectionRow {
+  id        String   @id @default(cuid())
+  userId    String
+  label     String
+  note      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum TaskCategory {
+  PERSONAL
+  WORK
+  HEALTH
+  EDUCATION
+  DIGITAL
+}
+
+enum TaskStatus {
+  OPEN
+  DONE
+}
